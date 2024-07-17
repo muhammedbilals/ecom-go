@@ -20,8 +20,8 @@ func UserRoutes(incomingRouts * gin.Engine){
 }
 
 func AuthRoutes(incomingRouts * gin.Engine){
-	incomingRouts.POST("/users/signup , ",controllers.Signup())
+	incomingRouts.POST("/users/signup , ", controllers.SignUp())
 	
-	incomingRouts.GET("/users/login , ",controllers.Login())
+	incomingRouts.GET("/users/login , ", controllers.Login())
 
 }

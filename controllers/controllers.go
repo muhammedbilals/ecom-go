@@ -2,6 +2,7 @@ package controllers
 
 import (
 	"context"
+	"fmt"
 	// "errors"
 	"log"
 	"net/http"
@@ -13,6 +14,7 @@ import (
 	"github.com/muhammedbilals/ecom-go/helpers"
 	"github.com/muhammedbilals/ecom-go/models"
 	"go.mongodb.org/mongo-driver/bson"
+	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
 )
 
@@ -30,6 +32,7 @@ func Login() {
 func SignUp() gin.HandlerFunc{
 	return func(c *gin.Context) {
 		var ctx, cancel =context.WithTimeout(context.Background(),100*time.Second)
+		
 		var user models.User
 
 		if err := c.BindJSON(&user); err!= nil {
@@ -60,6 +63,22 @@ func SignUp() gin.HandlerFunc{
 			c.JSON(http.StatusInternalServerError , gin.H{"error":"email or phone number already exist"})
 			
 		}
+		user.Created_at ,_ =time.Parse(time.RFC3339, time.Now().Format(time.RFC3339))
+		user.Updated_at ,_ =time.Parse(time.RFC3339, time.Now().Format(time.RFC3339))
+		user.ID =primitive.NewObjectID()
+		user.User_id = user.ID.Hex()
+		token , refreshToken , _ := helpers.GenerateAlltokens(*user.Email ,*user.FirstName, *&user.LastName,*&user.User_type,*user.User_id)
+		user.Token =&token
+		user.Refresh_token = &refreshToken
+
+		//insert into databsse
+		resultInsertNumber, InsertError := usercollection.InsertOne(ctx,user)
+		if(InsertError!=nil){
+			msg := fmt.Sprintf("User item was not created")
+			c.JSON(http.StatusInternalServerError ,gin.H{"error":msg})
+		}
+		defer cancel()
+		c.JSON(http.StatusOK ,resultInsertNumber)
 	}
 
 }
