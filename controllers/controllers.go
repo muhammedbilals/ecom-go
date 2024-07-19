@@ -19,7 +19,7 @@ import (
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
-	"go.mongodb.org/mongo-driver/mongo/options"
+	
 	"golang.org/x/crypto/bcrypt"
 )
 
@@ -46,40 +46,7 @@ func VerifyPassword(userpassword string, providepassword string) (bool, string) 
 	return check, msg
 }
 
-func UpdateAllTokens(signedToken string, signRefreshedToken string, userId string) {
-    ctx, cancel := context.WithTimeout(context.Background(), 100*time.Second)
-    defer cancel()
 
-    var updateObj primitive.D
-
-    updateObj = append(updateObj, bson.E{Key: "token", Value: signedToken})
-    updateObj = append(updateObj, bson.E{Key: "refresh_token", Value: signRefreshedToken})
-
-    updatedAt := time.Now()
-    updateObj = append(updateObj, bson.E{Key: "updated_at", Value: updatedAt})
-
-    upsert := true
-    updateOptions := options.UpdateOptions{
-        Upsert: &upsert,
-    }
-
-    filter := bson.M{"user_id": userId}
-
-    _, err := usercollection.UpdateOne(
-        ctx,
-        filter,
-        bson.D{
-            {Key: "$set", Value: updateObj},
-        },
-        &updateOptions,
-    )
-
-    if err != nil {
-        log.Panic(err)
-    }
-
-    return
-}
 
 func Login() gin.HandlerFunc {
 	return func(c *gin.Context) {
@@ -109,7 +76,7 @@ func Login() gin.HandlerFunc {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": "user not found"})
 		}
 		token, refereshToken, err := helpers.GenerateAlltokens(*foundUser.Email, *foundUser.FirstName, *foundUser.LastName, *foundUser.User_type, foundUser.User_id)
-		UpdateAllTokens(token, refereshToken, foundUser.User_id)
+		helpers.UpdateAllTokens(token, refereshToken, foundUser.User_id)
 
 		usercollection.FindOne(ctx, bson.M{"user_id": foundUser.User_id}).Decode(&foundUser)
 

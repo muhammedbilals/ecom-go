@@ -1,10 +1,12 @@
 package routes
 
 import (
+	"github.com/gin-gonic/gin"
 	"github.com/muhammedbilals/ecom-go/controllers"
 	"github.com/muhammedbilals/ecom-go/middleware"
-	"github.com/gin-gonic/gin"
 )
+
+
 
 func UserRoutes(incomingRouts * gin.Engine){
 	incomingRouts.Use(middleware.Authenticate())
@@ -18,9 +20,3 @@ func UserRoutes(incomingRouts * gin.Engine){
 	// incomingRouts.GET("/users/search , ",controllers.Search())
 }
 
-func AuthRoutes(incomingRouts * gin.Engine){
-	incomingRouts.POST("/users/signup , ", controllers.SignUp())
-	
-	incomingRouts.GET("/users/login , ", controllers.Login())
-
-}

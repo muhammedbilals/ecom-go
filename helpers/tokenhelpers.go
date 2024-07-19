@@ -1,6 +1,8 @@
 package helpers
 
 import (
+	"context"
+	"fmt"
 	"log"
 	"os"
 	"time"
@@ -8,7 +10,10 @@ import (
 	"github.com/dgrijalva/jwt-go"
 	"github.com/muhammedbilals/ecom-go/database"
 
+	"go.mongodb.org/mongo-driver/bson"
+	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
+	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
 type SignedDetails struct {
@@ -49,4 +54,65 @@ func GenerateAlltokens(email string, firstName string, lastName string, userType
 		return "", "", err
 	}
 	return token, refreshToken, err
+}
+
+func ValidateToken(signedToken string )(claims *SignedDetails,msg string){
+	token ,err := jwt.ParseWithClaims(
+		signedToken,
+		&SignedDetails{},
+		func(t *jwt.Token) (interface{}, error) {
+			return []byte(SECRET_KEY),nil
+		},
+	)
+	if err!=nil{
+		msg =err.Error()
+		return
+	}
+	claims ,ok := token.Claims.(*SignedDetails)
+	if !ok{
+		msg =fmt.Sprintf("the token is invalid")
+		msg= err.Error()
+		return
+	}
+	if claims.ExpiresAt < time.Now().Unix(){
+		msg= fmt.Sprintf("token is expired")
+		msg= err.Error()
+		return
+	}
+	return claims ,msg
+}
+
+func UpdateAllTokens(signedToken string, signRefreshedToken string, userId string) {
+    ctx, cancel := context.WithTimeout(context.Background(), 100*time.Second)
+    defer cancel()
+
+    var updateObj primitive.D
+
+    updateObj = append(updateObj, bson.E{Key: "token", Value: signedToken})
+    updateObj = append(updateObj, bson.E{Key: "refresh_token", Value: signRefreshedToken})
+
+    updatedAt := time.Now()
+    updateObj = append(updateObj, bson.E{Key: "updated_at", Value: updatedAt})
+
+    upsert := true
+    updateOptions := options.UpdateOptions{
+        Upsert: &upsert,
+    }
+
+    filter := bson.M{"user_id": userId}
+
+    _, err := usercollection.UpdateOne(
+        ctx,
+        filter,
+        bson.D{
+            {Key: "$set", Value: updateObj},
+        },
+        &updateOptions,
+    )
+
+    if err != nil {
+        log.Panic(err)
+    }
+
+    return
 }
