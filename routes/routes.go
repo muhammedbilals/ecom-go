@@ -3,7 +3,6 @@ package routes
 import (
 	"github.com/muhammedbilals/ecom-go/controllers"
 	"github.com/muhammedbilals/ecom-go/middleware"
-
 	"github.com/gin-gonic/gin"
 )
 
