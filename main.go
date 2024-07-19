@@ -3,7 +3,10 @@ package main
 import (
 	"log"
 	"os"
+
 	"github.com/gin-gonic/gin"
+	"github.com/joho/godotenv"
+
 	// "github.com/muhammedbilals/ecom-go/controllers"
 	// "github.com/muhammedbilals/ecom-go/database"
 	// "github.com/muhammedbilals/ecom-go/middleware"
@@ -12,6 +15,10 @@ import (
 )
 
 func main(){
+	err:= godotenv.Load(".env")
+	if err!=nil {
+		log.Fatal("Error loading .env file")
+	}
 	port := os.Getenv("PORT")
 	if port ==""{
 		port ="8000"
@@ -22,6 +29,7 @@ func main(){
 	router := gin.New()
 	router.Use(gin.Logger())
 	routes.UserRoutes(router)
+	routes.AuthRoutes(router)
 	// router.Use(middleware.Authentication())
 
 	router.GET("/api-1", func(c *gin.Context) {

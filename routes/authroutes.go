@@ -5,7 +5,7 @@ import (
 	"github.com/muhammedbilals/ecom-go/controllers"
 )
 
-func AuthRoutes(incomingRouts *gin.Engine) {
-	incomingRouts.POST("/users/signup , ", controllers.SignUp())
-	incomingRouts.GET("/users/login , ", controllers.Login())
+func AuthRoutes(incomingRoutes *gin.Engine) {
+	incomingRoutes.POST("users/signup", controllers.SignUp())
+	incomingRoutes.GET("users/login", controllers.Login())
 }
