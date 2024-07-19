@@ -65,10 +65,10 @@ func Login() gin.HandlerFunc {
 		passwordIsValid, msg := VerifyPassword(*user.Password, *foundUser.Password)
 		defer cancel()
 		if !passwordIsValid  {
-			c.JSON(http.StatusInternalServerError, gin.H{"error": msg})
+			c.JSON(http.StatusBadRequest, gin.H{"error": msg})
 		}
 		if foundUser.Email == nil {
-			c.JSON(http.StatusInternalServerError, gin.H{"error": "user not found"})
+			c.JSON(http.StatusBadRequest, gin.H{"error": "user not found"})
 		}
 		token, refereshToken, err := helpers.GenerateAlltokens(*foundUser.Email, *foundUser.FirstName, *foundUser.LastName, *foundUser.User_type, foundUser.User_id)
 		helpers.UpdateAllTokens(token, refereshToken, foundUser.User_id)
