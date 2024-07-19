@@ -4,13 +4,9 @@ import (
 	"context"
 	"fmt"
 	"strconv"
-
-
-	// "errors"
 	"log"
 	"net/http"
 	"time"
-
 	"github.com/gin-gonic/gin"
 	"github.com/go-playground/validator/v10"
 	"github.com/muhammedbilals/ecom-go/database"
@@ -19,7 +15,6 @@ import (
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
-	
 	"golang.org/x/crypto/bcrypt"
 )
 
@@ -126,8 +121,8 @@ func SignUp() gin.HandlerFunc {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": "email or phone number already exist"})
 			return
 		}
-		user.Created_at, _ = time.Parse(time.RFC3339, time.Now().Format(time.RFC3339))
-		user.Updated_at, _ = time.Parse(time.RFC3339, time.Now().Format(time.RFC3339))
+		user.Created_At, _ = time.Parse(time.RFC3339, time.Now().Format(time.RFC3339))
+		user.Updated_At, _ = time.Parse(time.RFC3339, time.Now().Format(time.RFC3339))
 		user.ID = primitive.NewObjectID()
 		user.User_id = user.ID.Hex()
 		token, refreshToken, err := helpers.GenerateAlltokens(*user.Email, *user.FirstName, *user.LastName, *user.User_type, user.User_id)
@@ -136,7 +131,7 @@ func SignUp() gin.HandlerFunc {
 			return
 		}
 		user.Token = &token
-		user.Refresh_token = &refreshToken
+		user.RefreshToken = &refreshToken
 
 		//insert into databsse
 		resultInsertNumber, InsertError := usercollection.InsertOne(ctx, user)

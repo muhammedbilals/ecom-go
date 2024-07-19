@@ -10,16 +10,16 @@ import (
 
 func Authenticate() gin.HandlerFunc {
 	return func(c *gin.Context) {
-		clienToken := c.Request.Header.Get("token")	
+		clienToken := c.Request.Header.Get("token")
 		if clienToken == ""{
-			c.JSON(http.StatusInternalServerError ,gin.H{"error":"No Autherization header provided"})
+			c.JSON(http.StatusUnauthorized ,gin.H{"error":"No Autherization header provided"})
 			c.Abort()
 			return
 		}
 
 		claims ,err :=helpers.ValidateToken(clienToken)
 		if err != ""{
-			c.JSON(http.StatusInternalServerError, gin.H{"error":err})
+			c.JSON(http.StatusUnauthorized, gin.H{"error":err})
 			c.Abort()
 			return
 		}

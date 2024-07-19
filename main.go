@@ -28,16 +28,17 @@ func main(){
 
 	router := gin.New()
 	router.Use(gin.Logger())
-	routes.UserRoutes(router)
 	routes.AuthRoutes(router)
+	routes.UserRoutes(router)
+
 	// router.Use(middleware.Authentication())
 
-	router.GET("/api-1", func(c *gin.Context) {
-		c.JSON(200,gin.H{"success":"Access granded for API-1"})
-	})
-	router.GET("/api-2", func(c *gin.Context) {
-		c.JSON(200,gin.H{"success":"Access granded for API-2"})
-	})
+	// router.GET("/api-1", func(c *gin.Context) {
+	// 	c.JSON(200,gin.H{"success":"Access granded for API-1"})
+	// })
+	// router.GET("/api-2", func(c *gin.Context) {
+	// 	c.JSON(200,gin.H{"success":"Access granded for API-2"})
+	// })
 
 
 	// router.GET("/addtocart", app.AddToCart())
