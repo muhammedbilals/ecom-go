@@ -73,6 +73,7 @@ func Login() gin.HandlerFunc {
 		token, refereshToken, err := helpers.GenerateAlltokens(*foundUser.Email, *foundUser.FirstName, *foundUser.LastName, *foundUser.User_type, foundUser.User_id)
 		helpers.UpdateAllTokens(token, refereshToken, foundUser.User_id)
 
+		//finding user with the user_id
 		usercollection.FindOne(ctx, bson.M{"user_id": foundUser.User_id}).Decode(&foundUser)
 
 		if err != nil {
@@ -98,6 +99,7 @@ func SignUp() gin.HandlerFunc {
 			c.JSON(http.StatusBadRequest, gin.H{"error": validationeErr.Error()})
 			return
 		}
+		//getting total document count
 		count, err := usercollection.CountDocuments(ctx, bson.M{"email": user.Email})
 		defer cancel()
 
@@ -107,6 +109,7 @@ func SignUp() gin.HandlerFunc {
 			return
 		}
 
+		//hashing password with the helper function
 		password := HashPassword(*user.Password)
 		user.Password = &password
 		count, err = usercollection.CountDocuments(ctx, bson.M{"phone": user.Phone})
@@ -121,6 +124,7 @@ func SignUp() gin.HandlerFunc {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": "email or phone number already exist"})
 			return
 		}
+		//adding time
 		user.Created_At, _ = time.Parse(time.RFC3339, time.Now().Format(time.RFC3339))
 		user.Updated_At, _ = time.Parse(time.RFC3339, time.Now().Format(time.RFC3339))
 		user.ID = primitive.NewObjectID()
@@ -148,6 +152,7 @@ func SignUp() gin.HandlerFunc {
 
 func GetUsers() gin.HandlerFunc{
 	return func(c *gin.Context) {
+		//checking user type ,grands access if only ADMIN to this endpoint
 		if err := helpers.CheckUserType(c ,"ADMIN"); err != nil {
 			c.JSON(http.StatusBadRequest , gin.H{"error":err.Error()})
 		}
@@ -203,12 +208,14 @@ func GetUser() gin.HandlerFunc {
 
 		//checks if the user is admin or not
 		if err := helpers.MatchUserTypeToUid(c, userId); err != nil {
-			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error})
+			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 			return
 		}
 
 		var ctx, cancel = context.WithTimeout(context.Background(), 100*time.Second)
 		var user models.User
+
+		//getting the user with the user_id
 		err := usercollection.FindOne(ctx, bson.M{"user_id": userId}).Decode(&user)
 		defer cancel()
 
