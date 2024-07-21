@@ -54,6 +54,7 @@ func Login() gin.HandlerFunc {
 		if err := c.BindJSON(&user); err != nil {
 			c.JSON(http.StatusBadRequest, gin.H{"error : ": err.Error()})
 		}
+		
 		//checks if the user is found on database and passing it to foundUser variable
 		err := usercollection.FindOne(ctx, bson.M{"email": user.Email}).Decode(&foundUser)
 		defer cancel()
@@ -61,6 +62,7 @@ func Login() gin.HandlerFunc {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": "email or password is incorrect"})
 			return
 		}
+
 		//verify the password with bcrypt
 		passwordIsValid, msg := VerifyPassword(*user.Password, *foundUser.Password)
 		defer cancel()
