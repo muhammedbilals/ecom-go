@@ -45,7 +45,14 @@ func VerifyPassword(userpassword string, providepassword string) (bool, string) 
 
 func Login() gin.HandlerFunc {
 	return func(c *gin.Context) {
+		if c.Request.Method !=http.MethodPost{
+			c.JSON(http.StatusMethodNotAllowed ,gin.H{"error":"method not allowed"})
+			return
+		}
+
 		var ctx, cancel = context.WithTimeout(context.Background(), 100*time.Second)
+
+	
 
 		var user models.User
 		var foundUser models.User
