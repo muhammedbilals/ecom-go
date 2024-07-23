@@ -3,10 +3,11 @@ package controllers
 import (
 	"context"
 	"fmt"
-	"strconv"
 	"log"
 	"net/http"
+	"strconv"
 	"time"
+
 	"github.com/gin-gonic/gin"
 	"github.com/go-playground/validator/v10"
 	"github.com/muhammedbilals/ecom-go/database"
@@ -41,18 +42,16 @@ func VerifyPassword(userpassword string, providepassword string) (bool, string) 
 	return check, msg
 }
 
-
-
 func Login() gin.HandlerFunc {
 	return func(c *gin.Context) {
-		if c.Request.Method !=http.MethodPost{
-			c.JSON(http.StatusMethodNotAllowed ,gin.H{"error":"method not allowed"})
+
+		if c.Request.Method != http.MethodGet {
+			c.JSON(http.StatusMethodNotAllowed, gin.H{"error": "method not allowed"})
 			return
 		}
 
 		var ctx, cancel = context.WithTimeout(context.Background(), 100*time.Second)
-
-	
+		defer cancel()
 
 		var user models.User
 		var foundUser models.User
@@ -61,7 +60,7 @@ func Login() gin.HandlerFunc {
 		if err := c.BindJSON(&user); err != nil {
 			c.JSON(http.StatusBadRequest, gin.H{"error : ": err.Error()})
 		}
-		
+
 		//checks if the user is found on database and passing it to foundUser variable
 		err := usercollection.FindOne(ctx, bson.M{"email": user.Email}).Decode(&foundUser)
 		defer cancel()
@@ -73,7 +72,7 @@ func Login() gin.HandlerFunc {
 		//verify the password with bcrypt
 		passwordIsValid, msg := VerifyPassword(*user.Password, *foundUser.Password)
 		defer cancel()
-		if !passwordIsValid  {
+		if !passwordIsValid {
 			c.JSON(http.StatusBadRequest, gin.H{"error": msg})
 		}
 		if foundUser.Email == nil {
@@ -159,48 +158,48 @@ func SignUp() gin.HandlerFunc {
 
 }
 
-func GetUsers() gin.HandlerFunc{
+func GetUsers() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		//checking user type ,grands access if only ADMIN to this endpoint
-		if err := helpers.CheckUserType(c ,"ADMIN"); err != nil {
-			c.JSON(http.StatusBadRequest , gin.H{"error":err.Error()})
+		if err := helpers.CheckUserType(c, "ADMIN"); err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		}
-		var ctx , cancel  =context.WithTimeout(context.Background(),100*time.Second)
+		var ctx, cancel = context.WithTimeout(context.Background(), 100*time.Second)
 
-		recordPerPage , err:= strconv.Atoi(c.Query("recordPerPage"))
+		recordPerPage, err := strconv.Atoi(c.Query("recordPerPage"))
 
-		if err!=nil || recordPerPage<1{
-			recordPerPage =0
+		if err != nil || recordPerPage < 1 {
+			recordPerPage = 0
 		}
-		page , err1 := strconv.Atoi(c.Query("page"))
-		if err1 != nil || page<1{
-			page =1
+		page, err1 := strconv.Atoi(c.Query("page"))
+		if err1 != nil || page < 1 {
+			page = 1
 		}
-		startIndex := (page -1 )*recordPerPage
-		startIndex , err = strconv.Atoi(c.Query("startIndex"))
+		startIndex := (page - 1) * recordPerPage
+		startIndex, err = strconv.Atoi(c.Query("startIndex"))
 
 		matchStage := bson.D{{Key: "$match", Value: bson.D{{}}}}
 		groupStage := bson.D{{Key: "$group", Value: bson.D{
-			{Key: "_id", Value: bson.D{{Key: "_id",Value: "null"}}},
+			{Key: "_id", Value: bson.D{{Key: "_id", Value: "null"}}},
 			{Key: "total_count", Value: bson.D{{Key: "$sum", Value: 1}}},
 			{Key: "data", Value: bson.D{{Key: "$push", Value: "$$ROOT"}}},
 		}}}
 		projectStage := bson.D{{Key: "$project", Value: bson.D{
 			{Key: "_id", Value: 0},
 			{Key: "total_count", Value: 1},
-			{Key: "user_items", Value: bson.D{ 
+			{Key: "user_items", Value: bson.D{
 				{Key: "$slice", Value: []interface{}{"$data", startIndex, recordPerPage}},
 			}},
 		}}}
 
-		result, err:=usercollection.Aggregate(ctx,mongo.Pipeline{
-			matchStage, groupStage , projectStage,
+		result, err := usercollection.Aggregate(ctx, mongo.Pipeline{
+			matchStage, groupStage, projectStage,
 		})
 
 		defer cancel()
 
-		if err!=nil{
-			c.JSON(http.StatusInternalServerError ,gin.H{"error":"error occured while lising user items"})
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "error occured while lising user items"})
 		}
 		var allUsers []bson.M
 		if err := result.All(ctx, &allUsers); err != nil {
