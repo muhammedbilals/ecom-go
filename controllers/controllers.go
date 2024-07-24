@@ -160,29 +160,40 @@ func SignUp() gin.HandlerFunc {
 
 func GetUsers() gin.HandlerFunc {
 	return func(c *gin.Context) {
+
 		//checking user type ,grands access if only ADMIN to this endpoint
 		if err := helpers.CheckUserType(c, "ADMIN"); err != nil {
 			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+			return
 		}
+
 		var ctx, cancel = context.WithTimeout(context.Background(), 100*time.Second)
+		defer cancel()
 
+		//converting string to intiger with strconv 
 		recordPerPage, err := strconv.Atoi(c.Query("recordPerPage"))
-
+		//returns 10 users by default
 		if err != nil || recordPerPage < 1 {
-			recordPerPage = 0
+			recordPerPage = 10
 		}
+
+		//gets the page no from url
 		page, err1 := strconv.Atoi(c.Query("page"))
+		//set defalut page to 1
 		if err1 != nil || page < 1 {
 			page = 1
 		}
+
+		//
 		startIndex := (page - 1) * recordPerPage
 		startIndex, err = strconv.Atoi(c.Query("startIndex"))
 
 		matchStage := bson.D{{Key: "$match", Value: bson.D{{}}}}
+		// MongoDB Aggregation Pipeline
 		groupStage := bson.D{{Key: "$group", Value: bson.D{
-			{Key: "_id", Value: bson.D{{Key: "_id", Value: "null"}}},
+			{Key: "_id", Value: "null"},
 			{Key: "total_count", Value: bson.D{{Key: "$sum", Value: 1}}},
-			{Key: "data", Value: bson.D{{Key: "$push", Value: "$$ROOT"}}},
+			{Key: "data", Value: bson.D{{Key: "$push", Value: "$ROOT"}}},
 		}}}
 		projectStage := bson.D{{Key: "$project", Value: bson.D{
 			{Key: "_id", Value: 0},
