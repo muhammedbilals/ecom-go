@@ -28,13 +28,24 @@ type Product struct {
 	Product_Id    primitive.ObjectID `bson:"product_id"`
 	Product_Name  *string            `json:"product_name" bson:"product_name"`
 	Price         int64              `json:"price" bson:"price"`
+	Category  	*string            `json:"category" bson:"category"`
 	Image         *string            `json:"image" bson:"image"`
+}
+
+type Shop struct {
+	Shop_Id   	primitive.ObjectID `bson:"shop_id"`
+	Shop_Name 	*string            `json:"shop_name" bson:"shop_name"`
+	Mobile    	*string            `json:"mobile" bson:"mobile"`
+	Category  	*string            `json:"category" bson:"category"`
+	Products 	 []Product          `json:"products" bson:"products"`
+	Image     	*string            `json:"image" bson:"image"`
 }
 
 type ProductUser struct {
 	Product_Id    primitive.ObjectID `bson:"product_id"`
 	Product_Name  *string            `json:"product_name" bson:"product_name"`
 	Price         int64              `json:"price" bson:"price"`
+	Category  		*string            `json:"category" bson:"category"`
 	Image         *string            `json:"image" bson:"image"`
 }
 
