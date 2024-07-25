@@ -162,13 +162,13 @@ func GetUsers() gin.HandlerFunc {
 	return func(c *gin.Context) {
 
 		//checking user type ,grands access if only ADMIN to this endpoint
-		if err := helpers.CheckUserType(c, "ADMIN"); err != nil {
-			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-			return
-		}
+		// if err := helpers.CheckUserType(c, "ADMIN"); err != nil {
+		// 	c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		// 	return
+		// }
 
-		var ctx, cancel = context.WithTimeout(context.Background(), 100*time.Second)
-		defer cancel()
+		// var ctx, cancel = context.WithTimeout(context.Background(), 100*time.Second)
+		// defer cancel()
 
 		//converting string to intiger with strconv 
 		recordPerPage, err := strconv.Atoi(c.Query("recordPerPage"))
@@ -186,38 +186,39 @@ func GetUsers() gin.HandlerFunc {
 
 		//
 		startIndex := (page - 1) * recordPerPage
-		startIndex, err = strconv.Atoi(c.Query("startIndex"))
+		// startIndex, err = strconv.Atoi(c.Query("startIndex"))
 
-		matchStage := bson.D{{Key: "$match", Value: bson.D{{}}}}
-		// MongoDB Aggregation Pipeline
-		groupStage := bson.D{{Key: "$group", Value: bson.D{
-			{Key: "_id", Value: "null"},
-			{Key: "total_count", Value: bson.D{{Key: "$sum", Value: 1}}},
-			{Key: "data", Value: bson.D{{Key: "$push", Value: "$ROOT"}}},
-		}}}
-		projectStage := bson.D{{Key: "$project", Value: bson.D{
-			{Key: "_id", Value: 0},
-			{Key: "total_count", Value: 1},
-			{Key: "user_items", Value: bson.D{
-				{Key: "$slice", Value: []interface{}{"$data", startIndex, recordPerPage}},
-			}},
-		}}}
+		
+		pipeline := mongo.Pipeline{
+            {{Key: "$match", Value: bson.D{{Key: "user_type", Value: "ADMIN"}}}}, // Filter for user_type "ADMIN"
+            {{Key: "$project", Value: bson.D{ // Project specific fields
+                {Key: "firstname", Value: 1},
+                {Key: "lastname", Value: 1},
+                {Key: "email", Value: 1},
+                {Key: "phone", Value: 1},
+                {Key: "created_at", Value: 1},
+                {Key: "updated_at", Value: 1},
+            }}},
+            {{Key: "$sort", Value: bson.D{{Key: "created_at", Value: -1}}}}, // Sort by creation date in descending order
+            {{Key: "$skip", Value: startIndex}},                // Skip documents based on startIndex
+            {{Key: "$limit", Value: recordPerPage}},            // Limit the number of documents
+        }
 
-		result, err := usercollection.Aggregate(ctx, mongo.Pipeline{
-			matchStage, groupStage, projectStage,
-		})
+		cursor, err1 := usercollection.Aggregate(context.TODO(), pipeline)
+		if err1 != nil {
+            c.JSON(500, gin.H{"error": err1.Error()})
+            return
+        }
 
-		defer cancel()
+		defer cursor.Close(context.TODO())
 
-		if err != nil {
-			c.JSON(http.StatusInternalServerError, gin.H{"error": "error occured while lising user items"})
-		}
-		var allUsers []bson.M
-		if err := result.All(ctx, &allUsers); err != nil {
-			c.JSON(http.StatusInternalServerError, gin.H{"error": "Error occurred while decoding user data"})
-			return
-		}
-		c.JSON(http.StatusOK, allUsers[0])
+
+		var results []bson.M
+        if err = cursor.All(context.TODO(), &results); err != nil {
+            c.JSON(500, gin.H{"error": err.Error()})
+            return
+        }
+		c.JSON(200, results)
 	}
 }
 
