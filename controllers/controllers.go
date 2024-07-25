@@ -155,7 +155,6 @@ func SignUp() gin.HandlerFunc {
 		defer cancel()
 		c.JSON(http.StatusOK, resultInsertNumber)
 	}
-
 }
 
 func GetUsers() gin.HandlerFunc {
@@ -167,8 +166,8 @@ func GetUsers() gin.HandlerFunc {
 		// 	return
 		// }
 
-		// var ctx, cancel = context.WithTimeout(context.Background(), 100*time.Second)
-		// defer cancel()
+		var ctx, cancel = context.WithTimeout(context.Background(), 100*time.Second)
+		defer cancel()
 
 		//converting string to intiger with strconv 
 		recordPerPage, err := strconv.Atoi(c.Query("recordPerPage"))
@@ -204,17 +203,17 @@ func GetUsers() gin.HandlerFunc {
             {{Key: "$limit", Value: recordPerPage}},            // Limit the number of documents
         }
 
-		cursor, err1 := usercollection.Aggregate(context.TODO(), pipeline)
+		cursor, err1 := usercollection.Aggregate(ctx, pipeline)
 		if err1 != nil {
             c.JSON(500, gin.H{"error": err1.Error()})
             return
         }
 
-		defer cursor.Close(context.TODO())
+		defer cursor.Close(ctx)
 
 
 		var results []bson.M
-        if err = cursor.All(context.TODO(), &results); err != nil {
+        if err = cursor.All(ctx, &results); err != nil {
             c.JSON(500, gin.H{"error": err.Error()})
             return
         }
