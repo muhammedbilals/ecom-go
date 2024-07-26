@@ -17,7 +17,7 @@ import (
 	
 )
 
-var usercollection *mongo.Collection = database.OpenCollection(database.Client, "users")
+var usercollection *mongo.Collection = database.UserCollection(database.Client, "users")
 var validate = validator.New()
 
 
