@@ -11,3 +11,9 @@ var (
 	ErrCantGetItem=errors.New("")
 	ErrCantBuyItem=errors.New("")
 )
+
+func AddProductToCart(){}
+
+func RemoveCartItem(){}
+
+func BuyItemFromCart(){}
