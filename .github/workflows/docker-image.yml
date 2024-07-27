@@ -14,11 +14,11 @@ jobs:
 
     steps:
     - uses: actions/checkout@v4
-    - name: Login to DockerHub
+    - name: Login DockerHub
       env:
-        DOCKER_USER_NAME : ${secrets.DOCKER_USERNAME}}
-        DOCKER_PASSWORD : ${{secrets.DOCKER_PASSWORD}}
-        run: docker login -u $DOCKER_USERNAME -p $DOCKER_PASSWORD
+        DOCKER_USER_NAME: ${{secrets.DOCKER_USERNAME}}
+        DOCKER_PASSWORD: ${{secrets.DOCKER_PASSWORD}}
+      run: docker login -u $DOCKER_USERNAME -p $DOCKER_PASSWORD
         
     - name: Build the Docker image
       run: docker build -t ecom-go .
