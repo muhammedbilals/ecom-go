@@ -23,4 +23,4 @@ jobs:
       run: docker build -t muhammedbilals/ecom-go:latest .
 
     - name: Push to DockerHub
-      run: docker push muhammedbilals/ecom-go:latest
+      run: docker push bilalms/ecom-go:latest
