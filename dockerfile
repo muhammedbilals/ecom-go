@@ -14,8 +14,11 @@ RUN go build -o /ecom-go
 
 FROM alpine:latest
 
+WORKDIR /app
+
 COPY --from=build /ecom-go /ecom-go
 
+COPY .env .env
 
 EXPOSE 8080
 
